@@ -1,4 +1,4 @@
-# :world_map: SpatialAnalysis-Front-End
+# :world_map: Spatial Analysis with Turf.js 
 ![Geospatial Analysis](assets/img/Cover.jpg)
 
 **:black_nib: Description:**
