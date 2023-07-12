@@ -1,4 +1,7 @@
 # :world_map: SpatialAnalysis-Front-End
+![Geospatial Analysis](assets/img/Cover.jpg)
+
+**:black_nib: Description:**
 The project to import geospatial data into PostgreSQL, as well as to utilize geojson to display location on a Web map and using turf library that functional to analyze and calculate geospatial data on web map variously.
 
 **:black_nib: Related project:**
@@ -10,4 +13,4 @@ The project to import geospatial data into PostgreSQL, as well as to utilize geo
 - Web server 
 - [GeoServer](https://geoserver.org/) - open source server for sharing geospatial data.
 - [PostgreSQL](https://www.postgresql.org/) - open source server for sharing geospatial data.
-- [PostGIS](https://postgis.net/) - open source server for sharing geospatial data.
+- [PostGIS](https://postgis.net/) - PostgreSQL database extension which adding support storing, indexing and querying geographic data.
