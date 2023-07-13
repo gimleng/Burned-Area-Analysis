@@ -1,10 +1,10 @@
 <html>
 
 <head>
-  <title>Spatial Data | Gimleng.com</title>
+  <title>Spatial Data Analysis | Gimleng.com</title>
   <link rel="icon" type="image/x-icon" href="assets/img/favicon.ico">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-  <meta charset="UTF-8">
+  <meta http-equiv="content-type" content="text/html; charset=UTF-8"></meta>
   <!--CSS-->
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
     integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="" />
@@ -20,7 +20,8 @@
   <link rel="stylesheet" href="css/L.Control.Locate.min.css" />
   <link rel="stylesheet" href="css/main.css" />
   <!--JS-->
-  <script src="js/jquery-3.5.1.min.js"></script>
+  <script src="https://code.jquery.com/jquery-3.7.0.min.js"
+    integrity="sha256-2Pmvv0kuTBOenSvLm6bvfBSSHrUJ+3A7x6P5Ebd07/g=" crossorigin="anonymous"></script>
   <script src="js/bootstrap-switch-button.min.js"></script>
   <script src="js/bootstrap.min.js"></script>
   <script src="js/bootstrap.bundle.js"></script>
@@ -176,6 +177,13 @@
         return [nir_sta['geometry']['coordinates'][1], nir_sta['geometry']['coordinates'][0]];
       }
 
+      /*Nearest fire station subs*/
+      function nearest_fire_station_sub(lat_start, lng_start) {
+        var starting_point = turf.point([lng_start, lat_start], { "marker-color": "#0F0" });
+        var nir_sta = turf.nearestPoint(starting_point, FireStation[0]);
+        return [nir_sta['geometry']['coordinates'][1], nir_sta['geometry']['coordinates'][0]];
+      }
+
       /*Routing */
       var wp_control = L.Routing.control({
         routeWhileDragging: true,
@@ -222,7 +230,8 @@
         var container = L.DomUtil.create('div', 'menuOnmap', container),
           startBtn = createButton('เลือกจุดเริ่มต้น', container),
           destBtn = createButton2('เลือกจุดหมาย', container),
-          nearest_pwa = createButton5('ไปสถานีหลักที่ใกล้ที่สุด', container);
+          nearest_fs = createButton5('ไปสถานีหลักที่ใกล้ที่สุด', container),
+          nearest_fs_sub = createButton6('ไปสถานีย่อยที่ใกล้ที่สุด', container);
 
         L.DomEvent.on(startBtn, 'click', function () {
           wp_control.spliceWaypoints(0, 1, e.latlng);
@@ -234,9 +243,15 @@
           map.closePopup();
         });
 
-        L.DomEvent.on(nearest_pwa, 'click', function () {
+        L.DomEvent.on(nearest_fs, 'click', function () {
           wp_control.spliceWaypoints(0, 1, e.latlng);
           wp_control.spliceWaypoints(wp_control.getWaypoints().length - 1, 1, nearest_fire_station(e.latlng.lat, e.latlng.lng));
+          map.closePopup();
+        });
+
+        L.DomEvent.on(nearest_fs_sub, 'click', function () {
+          wp_control.spliceWaypoints(0, 1, e.latlng);
+          wp_control.spliceWaypoints(wp_control.getWaypoints().length - 1, 1, nearest_fire_station_sub(e.latlng.lat, e.latlng.lng));
           map.closePopup();
         });
 
@@ -277,6 +292,13 @@
         return btn;
       }
 
+      function createButton6(label, container) {
+        var btn = L.DomUtil.create('button', 'btn btn-outline-secondary btn-sm btn-block', container);
+        btn.setAttribute('type', 'button');
+        btn.innerHTML = label;
+        return btn;
+      }
+
       /*Basemap switcher*/
       new L.basemapsSwitcher([
         {
@@ -302,7 +324,7 @@
         },
       ], { position: 'topright' }).addTo(map);
 
-      var fire_station_subs = L.tileLayer.betterWms("http://localhost:8080/geoserver/Spatial_Data/wms", {
+      var fire_station_subs = L.tileLayer.wms("http://localhost:8080/geoserver/Spatial_Data/wms?", {
         maxZoom: 20,
         layers: 'Spatial_Data:fire_station',
         transparent: true,
@@ -358,7 +380,7 @@
         },
       ];
 
-      var pwa_sta = [
+      var fire_sta = [
         {
           label: 'สถานีดับเพลิงในเขต กทม.',
           children: [
@@ -368,7 +390,7 @@
         }
       ];
 
-      var lay = L.control.layers.tree(baseTree, pwa_sta,
+      var lay = L.control.layers.tree(baseTree, fire_sta,
         {
           namedToggle: true,
           selectorBack: false,
