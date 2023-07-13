@@ -39,10 +39,39 @@
 </head>
 
 <body id="page-top">
+  <div id="area_buffer" class="modal fade" style="--bs-modal-width: 400px;">
+    <div class="modal-dialog" style="top: 30%;">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title"><i class="fa-solid fa-fire fa-bounce"></i> แสดงพื้นที่ควรอพยพ</h5>
+          <button type="button" class="close" data-dismiss="modal">&times;</button>
+        </div>
+        <form name="area_buffer_form" id="area_buffer_form" method="post">
+          <table class="modal_form" border="0" cellspacing="0" cellpadding="10">
+            <tr>
+              <td class="modal_font"><i class="fa-solid fa-location-crosshairs"></i> พิกัดที่เกิดเพลิงไหม้</td>
+              <td><input class="textInput modal_font" type="text" id="fire_coor" name="fire_coor" required></td>
+            </tr>
+            <tr>
+              <td class="modal_font"><i class="fa-solid fa-signature"></i> ชื่อพิกัด</td>
+              <td><input class="textInput modal_font" id="coor_name" type="text" name="coor_name" required></td>
+            </tr>
+            <tr>
+              <td class="modal_font"><i class="fa-regular fa-circle"></i> รัศมี (กิโลเมตร)</td>
+              <td><input class="textInput modal_font float" id="radius_km" type="text" name="radius_km" required></td>
+            </tr>
+          </table>
+          <br>
+          <center><button type="submit" class="btn btn-primary modal_font">แสดงพื้นที่</button></center>
+        </form>
+      </div>
+    </div>
+  </div>
+
   <nav class="navbar navbar-expand-lg bg-secondary text-uppercase fixed-bottom"
     style="padding-bottom: 1px;padding-top: 1px" id="mainNav">
     <div class="container">
-      <a class="navbar-brand">Spatial Data</a>
+      <a class="navbar-brand">Wildfire emergency</a>
       <button class="navbar-toggler text-uppercase font-weight-bold bg-primary text-white rounded" type="button"
         data-bs-toggle="collapse" data-bs-target="#navbarResponsive" aria-controls="navbarResponsive"
         aria-expanded="false" aria-label="Toggle navigation">
@@ -177,13 +206,6 @@
         return [nir_sta['geometry']['coordinates'][1], nir_sta['geometry']['coordinates'][0]];
       }
 
-      /*Nearest fire station subs*/
-      function nearest_fire_station_sub(lat_start, lng_start) {
-        var starting_point = turf.point([lng_start, lat_start], { "marker-color": "#0F0" });
-        var nir_sta = turf.nearestPoint(starting_point, fire_station_subs);
-        return [nir_sta['geometry']['coordinates'][1], nir_sta['geometry']['coordinates'][0]];
-      }
-
       /*Routing */
       var wp_control = L.Routing.control({
         routeWhileDragging: true,
@@ -225,13 +247,12 @@
         }
       }).addTo(map)
 
-
       map.on('click', function (e) {
         var container = L.DomUtil.create('div', 'menuOnmap', container),
           startBtn = createButton('เลือกจุดเริ่มต้น', container),
           destBtn = createButton2('เลือกจุดหมาย', container),
-          nearest_fs = createButton5('ไปสถานีหลักที่ใกล้ที่สุด', container),
-          nearest_fs_sub = createButton6('ไปสถานีย่อยที่ใกล้ที่สุด', container);
+          nearest_fs = createButton5('ดับเพลิงที่ใกล้ที่สุด', container),
+          eva_area = createButton6('แสดงพื้นที่เพื่ออพยพ', container);
 
         L.DomEvent.on(startBtn, 'click', function () {
           wp_control.spliceWaypoints(0, 1, e.latlng);
@@ -249,9 +270,12 @@
           map.closePopup();
         });
 
-        L.DomEvent.on(nearest_fs_sub, 'click', function () {
-          wp_control.spliceWaypoints(0, 1, e.latlng);
-          wp_control.spliceWaypoints(wp_control.getWaypoints().length - 1, 1, nearest_fire_station_sub(e.latlng.lat, e.latlng.lng));
+        L.DomEvent.on(eva_area, 'click', function () {
+          document.getElementById('fire_coor').value = e.latlng.lat + "," + e.latlng.lng;
+          $('input.float').on('input', function () {
+            this.value = this.value.replace(/[^0-9.]/g, '').replace(/(\..*?)\..*/g, '$1');
+          });
+          $('#area_buffer').modal('show');
           map.closePopup();
         });
 
@@ -273,13 +297,6 @@
 
       function createButton2(label, container) {
         var btn = L.DomUtil.create('button', 'btn btn-outline-success btn-sm btn-block', container);
-        btn.setAttribute('type', 'button');
-        btn.innerHTML = label;
-        return btn;
-      }
-
-      function createButton4(label, container) {
-        var btn = L.DomUtil.create('button', 'btn btn-link btn-sm btn-block', container);
         btn.setAttribute('type', 'button');
         btn.innerHTML = label;
         return btn;
@@ -324,15 +341,6 @@
         },
       ], { position: 'topright' }).addTo(map);
 
-
-      var wms_url = 'http://localhost:8080/geoserver/Spatial_Data/wms?'
-      var fire_station_subs = L.tileLayer.wms("http://localhost:8080/geoserver/Spatial_Data/wms?", {
-        maxZoom: 20,
-        layers: 'Spatial_Data:fire_station',
-        transparent: true,
-        format: 'image/png'
-      });
-
       function handleJson_featureRequest(data) {
         console.log(data);
       }
@@ -340,13 +348,6 @@
       var fire_Icon = new L.icon({
         iconUrl: 'assets/icon/hydrant.png',
         iconSize: [15, 18],
-        iconAnchor: [16, 37],
-        popupAnchor: [0, -28]
-      });
-
-      var fire_Icon2 = new L.icon({
-        iconUrl: 'assets/icon/hydrant2.png',
-        iconSize: [30, 30],
         iconAnchor: [16, 37],
         popupAnchor: [0, -28]
       });
@@ -390,8 +391,7 @@
         {
           label: 'สถานีดับเพลิงในเขต กทม.',
           children: [
-            { label: 'สถานีหลัก', layer: FireStation_geo },
-            { label: 'สถานีย่อย', layer: fire_station_subs }
+            { label: 'สถานีดับเพลิง', layer: FireStation_geo }
           ]
         }
       ];
@@ -435,14 +435,26 @@
         document.getElementById('nav_button').attributes.onchange.nodeValue = "showosrm()";
       }
 
-      function success() {
-        $('#myModal').modal('hide');
-        $('#myModal2').modal('show');
-        setTimeout(() => {
-          document.getElementById("line-notify").submit();
-        }
-          , 3000);
-      }
+      $('#area_buffer_form').on('submit', function (e) {
+        e.preventDefault();
+        var coor_latlng = document.getElementById('fire_coor').value;
+        var coor_name = document.getElementById('coor_name').value;
+        const coor_latlng_split = coor_latlng.split(",");
+        const lng = parseFloat(coor_latlng_split[1])
+        const lat = parseFloat(coor_latlng_split[0])
+        var point = turf.point([lng, lat]);
+        var radius = document.getElementById('radius_km').value;
+        var buffered_area_feature = turf.buffer(point, radius, { units: 'kilometers' });
+        var buffered_area_geojson = L.geoJSON(null);
+        buffered_area_geojson.addData(buffered_area_feature);
+        buffered_area_geojson.addTo(map);
+        var marker = new L.Marker([lat, lng]);
+        marker.addTo(map);
+        marker.bindPopup(coor_name).openPopup();
+        marker.addTo(map);
+        $('#area_buffer').modal('hide');
+        document.getElementById("area_buffer_form").reset();
+      });
     </script>
   </section>
 </body>
