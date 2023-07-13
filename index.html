@@ -4,7 +4,8 @@
   <title>Spatial Data Analysis | Gimleng.com</title>
   <link rel="icon" type="image/x-icon" href="assets/img/favicon.ico">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-  <meta http-equiv="content-type" content="text/html; charset=UTF-8"></meta>
+  <meta http-equiv="content-type" content="text/html; charset=UTF-8">
+  </meta>
   <!--CSS-->
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
     integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="" />
@@ -30,7 +31,6 @@
   <script src="js/L.switchBasemap.js"></script>
   <script src="https://unpkg.com/shpjs@latest/dist/shp.js"></script>
   <script src="js/L.Control.Layers.Tree.js"></script>
-  <script src="js/L.TileLayer.BetterWMS.js"></script>
   <script src="js/leaflet-routing-machine.js"></script>
   <script src="js/Control.Geocoder.js"></script>
   <script src='js/turf.min.js'></script>
@@ -180,7 +180,7 @@
       /*Nearest fire station subs*/
       function nearest_fire_station_sub(lat_start, lng_start) {
         var starting_point = turf.point([lng_start, lat_start], { "marker-color": "#0F0" });
-        var nir_sta = turf.nearestPoint(starting_point, FireStation[0]);
+        var nir_sta = turf.nearestPoint(starting_point, fire_station_subs);
         return [nir_sta['geometry']['coordinates'][1], nir_sta['geometry']['coordinates'][0]];
       }
 
@@ -324,12 +324,18 @@
         },
       ], { position: 'topright' }).addTo(map);
 
+
+      var wms_url = 'http://localhost:8080/geoserver/Spatial_Data/wms?'
       var fire_station_subs = L.tileLayer.wms("http://localhost:8080/geoserver/Spatial_Data/wms?", {
         maxZoom: 20,
         layers: 'Spatial_Data:fire_station',
         transparent: true,
         format: 'image/png'
       });
+
+      function handleJson_featureRequest(data) {
+        console.log(data);
+      }
 
       var fire_Icon = new L.icon({
         iconUrl: 'assets/icon/hydrant.png',
