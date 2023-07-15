@@ -1,7 +1,7 @@
 <html>
 
 <head>
-  <title>Spatial Data Analysis | Gimleng.com</title>
+  <title>Fire Emergency | Gimleng.com</title>
   <link rel="icon" type="image/x-icon" href="assets/img/favicon.ico">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
   <meta http-equiv="content-type" content="text/html; charset=UTF-8">
@@ -9,7 +9,7 @@
   <!--CSS-->
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
     integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="" />
-  <link rel="stylesheet" href="css/bootstrap.min.css" />
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-9ndCyUaIbzAi2FUVXJi0CjmCapSmO7SnpJef0486qhLnuZ2cdeRhO02iuK6FUUVM" crossorigin="anonymous">
   <link rel="stylesheet" href="css/L.switchBasemap.css" />
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/boxicons@latest/css/boxicons.min.css" />
   <link href="css/all.css" rel="stylesheet">
@@ -20,12 +20,13 @@
   <link rel="stylesheet" href="css/bootstrap-switch-button.min.css" />
   <link rel="stylesheet" href="css/L.Control.Locate.min.css" />
   <link rel="stylesheet" href="css/main.css" />
+  <link rel="stylesheet" href="css/L.Icon.Pulse.css" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/sweetalert/1.1.3/sweetalert.css">
   <!--JS-->
   <script src="https://code.jquery.com/jquery-3.7.0.min.js"
     integrity="sha256-2Pmvv0kuTBOenSvLm6bvfBSSHrUJ+3A7x6P5Ebd07/g=" crossorigin="anonymous"></script>
   <script src="js/bootstrap-switch-button.min.js"></script>
-  <script src="js/bootstrap.min.js"></script>
-  <script src="js/bootstrap.bundle.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js" integrity="sha384-geWF76RCwLtnZ8qwWowPQNguL3RmwHVBC9FhGdlKrxdiJJigb/j/68SIy3Te4Bkz" crossorigin="anonymous"></script>
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
     integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
   <script src="js/L.switchBasemap.js"></script>
@@ -36,6 +37,8 @@
   <script src='js/turf.min.js'></script>
   <script src='js/L.Control.Locate.min.js'></script>
   <script src='js/leaflet.ajax.min.js'></script>
+  <script src='js/L.Icon.Pulse.js'></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/sweetalert/1.1.3/sweetalert-dev.js"></script>
 </head>
 
 <body id="page-top">
@@ -43,13 +46,13 @@
     <div class="modal-dialog" style="top: 30%;">
       <div class="modal-content">
         <div class="modal-header">
-          <h5 class="modal-title"><i class="fa-solid fa-fire fa-bounce"></i> แสดงพื้นที่ควรอพยพ</h5>
+          <h5 class="modal-title"><i class="fa-solid fa-fire"></i> พื้นที่เกิดเพลิงไหม้</h5>
           <button type="button" class="close" data-dismiss="modal">&times;</button>
         </div>
         <form name="area_buffer_form" id="area_buffer_form" method="post">
           <table class="modal_form" border="0" cellspacing="0" cellpadding="10">
             <tr>
-              <td class="modal_font"><i class="fa-solid fa-location-crosshairs"></i> พิกัดที่เกิดเพลิงไหม้</td>
+              <td class="modal_font"><i class="fa-solid fa-location-crosshairs"></i> พิกัด</td>
               <td><input class="textInput modal_font" type="text" id="fire_coor" name="fire_coor" required></td>
             </tr>
             <tr>
@@ -62,7 +65,7 @@
             </tr>
           </table>
           <br>
-          <center><button type="submit" class="btn btn-primary modal_font">แสดงพื้นที่</button></center>
+          <center><button type="submit" class="btn btn-primary modal_font">บันทึก</button></center>
         </form>
       </div>
     </div>
@@ -71,7 +74,7 @@
   <nav class="navbar navbar-expand-lg bg-secondary text-uppercase fixed-bottom"
     style="padding-bottom: 1px;padding-top: 1px" id="mainNav">
     <div class="container">
-      <a class="navbar-brand">Wildfire emergency</a>
+      <a class="navbar-brand"><i class="fa-solid fa-fire fa-beat-fade" style="color: #e00000;"></i> Fire Emergency</a>
       <button class="navbar-toggler text-uppercase font-weight-bold bg-primary text-white rounded" type="button"
         data-bs-toggle="collapse" data-bs-target="#navbarResponsive" aria-controls="navbarResponsive"
         aria-expanded="false" aria-label="Toggle navigation">
@@ -96,6 +99,9 @@
     <div id="map" style="height: 100%"></div>
     <script>
       var map = L.map('map').setView([13.746268, 100.5258001], 5);
+
+      var warning_pulse_open = L.icon.pulse({ iconSize: [10, 10], color: 'Crimson' });
+      var warning_pulse_closed = L.icon.pulse({ iconSize: [10, 10], fillColor: 'DarkCyan', animate: false });
 
       var FireStation = [{
         "type": "FeatureCollection",
@@ -252,7 +258,7 @@
           startBtn = createButton('เลือกจุดเริ่มต้น', container),
           destBtn = createButton2('เลือกจุดหมาย', container),
           nearest_fs = createButton5('ดับเพลิงที่ใกล้ที่สุด', container),
-          eva_area = createButton6('แสดงพื้นที่เพื่ออพยพ', container);
+          eva_area = createButton6('แสดงพื้นที่เกิดเพลิงไหม้', container);
 
         L.DomEvent.on(startBtn, 'click', function () {
           wp_control.spliceWaypoints(0, 1, e.latlng);
@@ -402,8 +408,6 @@
           selectorBack: false,
           closedSymbol: '&#8862; &#128204;',
           openedSymbol: '&#8863; &#127758;',
-          /*collapseAll: 'Collapse all',
-          expandAll: 'Expand all*/
           collapsed: false,
         });
 
@@ -437,24 +441,176 @@
 
       $('#area_buffer_form').on('submit', function (e) {
         e.preventDefault();
-        var coor_latlng = document.getElementById('fire_coor').value;
-        var coor_name = document.getElementById('coor_name').value;
-        const coor_latlng_split = coor_latlng.split(",");
-        const lng = parseFloat(coor_latlng_split[1])
-        const lat = parseFloat(coor_latlng_split[0])
-        var point = turf.point([lng, lat]);
-        var radius = document.getElementById('radius_km').value;
-        var buffered_area_feature = turf.buffer(point, radius, { units: 'kilometers' });
-        var buffered_area_geojson = L.geoJSON(null);
-        buffered_area_geojson.addData(buffered_area_feature);
-        buffered_area_geojson.addTo(map);
-        var marker = new L.Marker([lat, lng]);
-        marker.addTo(map);
-        marker.bindPopup(coor_name).openPopup();
-        marker.addTo(map);
         $('#area_buffer').modal('hide');
-        document.getElementById("area_buffer_form").reset();
-      });
+        var fire_form = $("#area_buffer_form");
+        var params = fire_form.serializeArray();
+        var fire_formData = new FormData();
+        $(params).each(function (index, element) {
+          fire_formData.append(element.name, element.value);
+        });
+        $.ajax({
+          method: "POST",
+          processData: false,
+          contentType: false,
+          url: "api/add_fire_point.php",
+          data: fire_formData,
+          success: function (data) {
+            setTimeout(function () {
+              swal({
+                title: "บันทึกพิกัดเรียบร้อย",
+                type: "success"
+              }, function () {
+                document.getElementById("area_buffer_form").reset();
+                //func
+              });
+            }, 100);
+          }
+        });
+        get_query_list();
+      })
+
+
+      function get_query_list() {
+        $.ajax({
+          method: "POST",
+          processData: false,
+          contentType: false,
+          url: "api/get_query_list.php",
+          success: function (data) {
+            data = JSON.parse(data);
+            bind_point(data);
+          }
+        });
+      }
+
+      function bind_point(data) {
+        for (i in data) {
+          var id_list = data[i];
+          $.ajax({
+            method: "POST",
+            url: "api/bind_point.php",
+            data: { 'id_list': id_list },
+            success: function (data) {
+              data = JSON.parse(data);
+              var coor_latlng = data[2];
+              var coor_name = data[1];
+              const coor_latlng_split = coor_latlng.split(",");
+              const lng = parseFloat(coor_latlng_split[1]);
+              const lat = parseFloat(coor_latlng_split[0]);
+              var point = turf.point([lng, lat]);
+              var radius = data[3];
+              var buffered_area_feature = turf.buffer(point, radius, { units: 'kilometers' });
+              var buffered_area_geojson = L.geoJSON(null);
+              buffered_area_geojson.addData(buffered_area_feature);
+              buffered_area_geojson.addTo(map);
+              if (data[4] == 'open') {
+                var marker = new L.Marker([lat, lng], { icon: warning_pulse_open });
+                marker.addTo(map);
+              }
+              else if (data[4] == 'closed') {
+                var marker = new L.Marker([lat, lng], { icon: warning_pulse_closed });
+                marker.addTo(map);
+              }
+              marker.bindPopup("<table class='table table-borderless'>\
+                    <thead>\
+                      <tr>\
+                        <th scope='col' colspan='2' class='table-dark'><i class='fa-solid fa-map-pin'></i> พิกัดการเกิดเพลิงไหม้</th>\
+                      </tr>\
+                    </thead>\
+                    <tbody>\
+                      <tr>\
+                        <th scope='row'>ชื่อ</th>\
+                        <td>"+ coor_name + "</td>\
+                      </tr>\
+                      <tr>\
+                        <th scope='row'>รัศมี</th>\
+                        <td>"+ radius + " กม.</td>\
+                      </tr>\
+                      <tr>\
+                        <th scope='row' colspan='2'><div class='d-grid gap-2'><button type='button' class='btn btn-outline-info btn-sm'>วิเคราะห์</button></div></th>\
+                      </tr>\
+                      <tr>\
+                        <th scope='row' colspan='2'><div class='d-grid gap-2'><button type='button' class='btn btn-outline-secondary btn-sm'>ปิดโครงการ</button></div></th>\
+                      </tr>\
+                      <tr>\
+                        <th scope='row'><div class='d-grid gap-2'><button type='button' class='btn btn-secondary btn-sm' onclick='copy_fire_coor("+ lat + "," + lng + ")'>คัดลอกพิกัด</button></div></td></th>\
+                        <td><div class='d-grid gap-2'><button type='button' class='btn btn-danger btn-sm'>ลบ</button></div></td>\
+                      </tr>\
+                    </tbody>\
+                  </table>", { maxWidth: 300, minWidth: 200 });
+            }
+          });
+        }
+      }
+
+      // $('#area_buffer_form').on('submit', function (e) {
+      // e.preventDefault();
+      // var coor_latlng = document.getElementById('fire_coor').value;
+      // var coor_name = document.getElementById('coor_name').value;
+      // const coor_latlng_split = coor_latlng.split(",");
+      // const lng = parseFloat(coor_latlng_split[1])
+      // const lat = parseFloat(coor_latlng_split[0])
+      // var point = turf.point([lng, lat]);
+      // var radius = document.getElementById('radius_km').value;
+      // var buffered_area_feature = turf.buffer(point, radius, { units: 'kilometers' });
+      // var buffered_area_geojson = L.geoJSON(null);
+      // buffered_area_geojson.addData(buffered_area_feature);
+      // buffered_area_geojson.addTo(map);
+
+      // // save this coordinate to postgreSQL
+      // $.ajax({
+      //   method: "POST",
+      //   cache: false,
+      //   url: "api/add_fire_point.php",
+      //   data: {'coor_lat': lat, 'coor_lng': lng, 'coor_name': coor_name, 'radius': radius},
+      //   success: function (data) {
+      //     console.log('pass');
+      //   }
+      // });
+
+
+
+      //         var marker = new L.Marker([lat, lng], { icon: warning_pulse });
+      //         marker.addTo(map);
+      //         marker.bindPopup("<table class='table'>\
+      //   <thead>\
+      //     <tr>\
+      //       <th scope='col' colspan='2'><i class='fa-solid fa-map-pin'></i> พิกัดการเกิดเพลิงไหม้</th>\
+      //     </tr>\
+      //   </thead>\
+      //   <tbody>\
+      //     <tr>\
+      //       <th scope='row'>ชื่อ</th>\
+      //       <td>"+ coor_name + "</td>\
+      //     </tr>\
+      //     <tr>\
+      //       <th scope='row'>รัศมี</th>\
+      //       <td>"+ radius + " กม.</td>\
+      //     </tr>\
+      //     <tr>\
+      //       <th scope='row'><button type='button' class='btn btn-secondary btn-sm' onclick='copy_fire_coor("+ lat + "," + lng + ")'>คัดลอกพิกัด</button></td></th>\
+      //       <td><button type='button' class='btn btn-danger btn-sm'>ลบ</button></td>\
+      //     </tr>\
+      //   </tbody>\
+      // </table>", { maxWidth: 300, minWidth: 200 }).openPopup();
+      //         marker.addTo(map);
+      //         $('#area_buffer').modal('hide');
+      //         document.getElementById("area_buffer_form").reset();
+      //       });
+
+      function copy_fire_coor(lat, lng) {
+        var coor_str = lat.toString() + ", " + lng.toString();
+        navigator.clipboard.writeText(coor_str);
+        setTimeout(function () {
+          swal({
+            title: "คัดลอกพิกัดเรียบร้อยแล้ว",
+            type: "success"
+          }, function () {
+            //func
+          });
+        }, 100);
+      }
+      get_query_list();
     </script>
   </section>
 </body>

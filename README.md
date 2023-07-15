@@ -12,8 +12,3 @@ The project to import geospatial data into PostgreSQL, as well as to utilize geo
 **:black_nib: Requirements:**
 - Web server
 - Fire station in geojson format - [urbandata.theurbanis.com](https://urbandata.theurbanis.com/files/4/27)
-
-
-## :green_circle: Quick Start
-**:black_nib: Installation**
-
