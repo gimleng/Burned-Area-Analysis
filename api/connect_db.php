@@ -16,8 +16,17 @@ try {
         proj_display TEXT NOT NULL,
         created_date DATE NOT NULL,
         closed_date DATE,
-        PRIMARY KEY (ID)
-      )";
+        PRIMARY KEY (ID));
+      
+      CREATE TABLE IF NOT EXISTS fire_point_del (
+        ID SERIAL NOT NULL,
+        loca_name TEXT NOT NULL,
+        coordinate TEXT NOT NULL,
+        radius INTEGER NOT NULL,
+        proj_status TEXT NOT NULL,
+        proj_display TEXT NOT NULL,
+        created_date DATE NOT NULL,
+        closed_date DATE)";
     $connect->exec($sql);
 
 } catch (PDOException $e) {

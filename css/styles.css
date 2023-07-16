@@ -10949,6 +10949,15 @@ html {
     font-size: 1.5em;
   }
 }
+
+/* For smartphone */
+@media (max-width: 992px) {
+  #mainNav .navbar-brand {
+    font-size: 1.0em;
+    transition: font-size 0.3s;
+  }
+}
+
 .form-floating input.form-control,
 .form-floating textarea.form-control {
   font-size: 1.5rem;

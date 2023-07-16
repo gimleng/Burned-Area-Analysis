@@ -12,8 +12,10 @@ while ($row = $sql->fetch(PDO::FETCH_ASSOC)) {
 	$coordinate = $row['coordinate'];
 	$radius = $row['radius'];
     $proj_status = $row['proj_status'];
+	$created_date = $row['created_date'];
+	$closed_date = $row['closed_date'];
 }
 
-$query_result = [$proj_id, $loca_name, $coordinate, $radius, $proj_status];
+$query_result = [$proj_id, $loca_name, $coordinate, $radius, $proj_status, $created_date, $closed_date];
 echo json_encode($query_result);
 ?>
