@@ -106,13 +106,13 @@
           <tr>
             <td>กำลังดำเนินการ</td>
             <td><input id="filter_active" type="checkbox" checked data-toggle="toggle" data-style="ios"
-                data-onstyle="outline-success" data-offstyle="outline-danger">
+                data-onstyle="success" data-offstyle="danger">
             </td>
           </tr>
           <tr>
             <td>ปิดโครงการแล้ว</td>
             <td><input id="filter_deactive" type="checkbox" checked data-toggle="toggle" data-style="ios"
-                data-onstyle="outline-success" data-offstyle="outline-danger">
+                data-onstyle="success" data-offstyle="danger">
             </td>
           </tr>
           </td>
