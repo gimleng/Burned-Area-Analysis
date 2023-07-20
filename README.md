@@ -11,6 +11,7 @@ The project to import geospatial data into PostgreSQL, as well as to utilize geo
 
 **:black_nib: Requirements:**
 - Web server
+- PostgreSQL & pgAdmin
 - Fire station location - [geofabrik]([https://urbandata.theurbanis.com/files/4/27](http://download.geofabrik.de/asia/thailand.html))
   - Fire station location is in the POI shape file, and I already extract it to geojson format (/geojson/fire_station.geojson)
 
