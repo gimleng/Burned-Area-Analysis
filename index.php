@@ -44,7 +44,7 @@
   <script src='js/L.Control.Locate.min.js'></script>
   <script src='js/leaflet.ajax.min.js'></script>
   <script src='js/L.Icon.Pulse.js'></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/sweetalert/1.1.3/sweetalert-dev.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
   <script src="https://cdn.jsdelivr.net/gh/gitbrent/bootstrap4-toggle@3.6.1/js/bootstrap4-toggle.min.js"></script>
 </head>
 
@@ -503,13 +503,12 @@
         data: fire_formData,
         success: function (data) {
           setTimeout(function () {
-            swal({
-              title: "บันทึกพิกัดเรียบร้อย",
-              type: "success"
-            }, function () {
-              document.getElementById("area_buffer_form").reset();
-              //func
-            });
+            document.getElementById("area_buffer_form").reset();
+            Swal.fire(
+              'บันทึกพิกัดเรียบร้อย',
+              '',
+              'success'
+            );
           }, 100);
         }
       });
@@ -615,6 +614,51 @@
       });
     }
 
+    function del_point_cf(point_id) {
+      Swal.fire({
+        title: 'ต้องการลบโครงการนี้ใช่หรือไม่?',
+        text: "",
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonColor: '#3085d6',
+        cancelButtonColor: '#d33',
+        confirmButtonText: 'ลบโครงการ',
+        cancelButtonText: 'ยกเลิก'
+      }).then((result) => {
+        if (result.isConfirmed) {
+          del_point(point_id)
+        }
+      })
+    }
+
+    function del_point(point_id) {
+      $.ajax({
+        method: "POST",
+        url: "api/del_point.php",
+        data: { 'point_id': point_id },
+        success: function (data) {
+          
+          if (data == 'pass') {
+            Swal.fire(
+              'ลบโครงการเรียบร้อยแล้ว',
+              '',
+              'success'
+            )
+          }
+          else if (data == 'failed') {
+            Swal.fire({
+              icon: 'error',
+              title: 'เกิดข้อผิดพลาด',
+              text: '',
+              footer: ''
+            })
+          }
+        }
+      }
+      )
+    }
+
+
     function bind_point(data) {
       for (i in data) {
         var id_list = data[i];
@@ -690,7 +734,7 @@
                       </tr>\
                       <tr>\
                         <th scope='row' style='padding: 1px;'><div class='d-grid gap-2'><button type='button' class='btn btn-outline-primary btn-sm' onclick='copy_fire_coor("+ lat + "," + lng + ")'>คัดลอกพิกัด</button></div></td></th>\
-                        <td style='padding: 1px;'><div class='d-grid gap-2'><button type='button' class='btn btn-outline-danger btn-sm'>ลบ</button></div></td>\
+                        <td style='padding: 1px;'><div class='d-grid gap-2'><button type='button' class='btn btn-outline-danger btn-sm' onclick='del_point_cf("+ point_id + ")'>ลบ</button></div></td>\
                       </tr>\
                     </tbody>\
                   </table>", { maxWidth: 400, minWidth: 300 });
