@@ -26,6 +26,8 @@
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/sweetalert/1.1.3/sweetalert.css">
   <link href="https://cdn.jsdelivr.net/gh/gitbrent/bootstrap4-toggle@3.6.1/css/bootstrap4-toggle.min.css"
     rel="stylesheet">
+  <!-- Draw control CSS -->
+  <link rel="stylesheet" href="draw_control/leaflet.draw.css">
   <!--JS-->
   <script src="https://code.jquery.com/jquery-3.7.0.min.js"
     integrity="sha256-2Pmvv0kuTBOenSvLm6bvfBSSHrUJ+3A7x6P5Ebd07/g=" crossorigin="anonymous"></script>
@@ -46,6 +48,42 @@
   <script src='js/L.Icon.Pulse.js'></script>
   <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
   <script src="https://cdn.jsdelivr.net/gh/gitbrent/bootstrap4-toggle@3.6.1/js/bootstrap4-toggle.min.js"></script>
+  <!-- Draw control js -->
+  <script src="draw_control/Leaflet.draw.js"></script>
+  <script src="draw_control/Leaflet.Draw.Event.js"></script>
+  <script src="draw_control/Toolbar.js"></script>
+  <script src="draw_control/Tooltip.js"></script>
+
+  <script src="draw_control/ext/GeometryUtil.js"></script>
+  <script src="draw_control/ext/LatLngUtil.js"></script>
+  <script src="draw_control/ext/LineUtil.Intersect.js"></script>
+  <script src="draw_control/ext/Polygon.Intersect.js"></script>
+  <script src="draw_control/ext/Polyline.Intersect.js"></script>
+  <script src="draw_control/ext/TouchEvents.js"></script>
+
+  <script src="draw_control/draw/DrawToolbar.js"></script>
+  <script src="draw_control/draw/handler/Draw.Feature.js"></script>
+  <script src="draw_control/draw/handler/Draw.SimpleShape.js"></script>
+  <script src="draw_control/draw/handler/Draw.Polyline.js"></script>
+  <script src="draw_control/draw/handler/Draw.Marker.js"></script>
+  <script src="draw_control/draw/handler/Draw.Circle.js"></script>
+  <script src="draw_control/draw/handler/Draw.CircleMarker.js"></script>
+  <script src="draw_control/draw/handler/Draw.Polygon.js"></script>
+  <script src="draw_control/draw/handler/Draw.Rectangle.js"></script>
+
+  <script src="draw_control/edit/EditToolbar.js"></script>
+  <script src="draw_control/edit/handler/EditToolbar.Edit.js"></script>
+  <script src="draw_control/edit/handler/EditToolbar.Delete.js"></script>
+
+  <script src="draw_control/Control.Draw.js"></script>
+
+  <script src="draw_control/edit/handler/Edit.Poly.js"></script>
+  <script src="draw_control/edit/handler/Edit.SimpleShape.js"></script>
+  <script src="draw_control/edit/handler/Edit.Rectangle.js"></script>
+  <script src="draw_control/edit/handler/Edit.Marker.js"></script>
+  <script src="draw_control/edit/handler/Edit.CircleMarker.js"></script>
+  <script src="draw_control/edit/handler/Edit.Circle.js"></script>
+
 </head>
 
 <body id="page-top">
@@ -81,7 +119,7 @@
   <nav class="navbar navbar-expand-lg bg-secondary text-uppercase fixed-bottom"
     style="padding-bottom: 1px;padding-top: 1px" id="mainNav">
     <div class="container">
-      <a class="navbar-brand"><i class="fa-solid fa-fire fa-beat-fade" style="color: #e00000;"></i> Fire Emergency</a>
+      <a class="navbar-brand"><i class="fa-solid fa-fire fa-beat-fade" style="color: #e00000;"></i> Burned Area</a>
       <ul class="navbar-nav ms-auto">
         <li id="nav_toggle_osrm" class="nav-item mx-0 mx-lg-1">
           <input id="nav_button" type="checkbox" data-toggle="switchbutton" onchange="showosrm()"
@@ -260,6 +298,101 @@
       ]
     }
 
+    /* Draw event */
+    // map.on('draw:created', function (evt) {
+    //   layer = evt.layer;
+    //   console.log('hi')
+    //   // do something when polygon is created
+    // });
+
+    // map.on('draw:edited', function (evt) {
+    //   layer = evt.layer;
+    //   // do something when polygon is edited
+    // });
+
+    // map.on('draw:deleted', function (evt) {
+    //   layer = evt.layer;
+    //   // do something when polygon is deleted
+    // });
+
+    // map.on('draw:drawstart', function () {
+    //   map.off('click', disable_popup_menu);
+    // });
+    var drawing_status = 0
+    
+    /* disable popup menu*/
+    map.on('draw:drawstart', function () {
+      drawing_status = 1
+    });
+
+     /* enable popup menu*/
+    map.on('draw:drawstop', function () {
+      drawing_status = 0
+    });
+
+    /* Draw control */
+    var editableLayers = new L.FeatureGroup();
+    map.addLayer(editableLayers);
+
+    var MyCustomMarker = L.Icon.extend({
+      options: {
+        shadowUrl: null,
+        iconAnchor: new L.Point(12, 12),
+        iconSize: new L.Point(24, 24),
+        iconUrl: 'assets/icon/warning.png'
+      }
+    });
+
+    var options = {
+      position: 'topleft',
+      draw: {
+        polyline: {
+          shapeOptions: {
+            color: '#f357a1',
+            weight: 10
+          }
+        },
+        polygon: {
+          allowIntersection: false, // Restricts shapes to simple polygons
+          drawError: {
+            color: '#e1e100', // Color the shape will turn when intersects
+            message: '<strong>Oh snap!<strong> you can\'t draw that!' // Message that will show when intersect
+          },
+          shapeOptions: {
+            color: '#bada55'
+          }
+        },
+        circle: false, // Turns off this drawing tool
+        rectangle: {
+          shapeOptions: {
+            clickable: false
+          }
+        },
+        marker: {
+          icon: new MyCustomMarker()
+        }
+      },
+      edit: {
+        featureGroup: editableLayers, //REQUIRED!!
+        remove: false
+      }
+    };
+
+    var drawControl = new L.Control.Draw(options);
+    map.addControl(drawControl);
+
+    map.on(L.Draw.Event.CREATED, function (e) {
+      var type = e.layerType,
+        layer = e.layer;
+
+      if (type === 'marker') {
+        layer.bindPopup('A popup!');
+      }
+
+      editableLayers.addLayer(layer);
+    });
+
+
     /*Current location*/
     var lc = L.control.locate({
       strings: {
@@ -323,45 +456,49 @@
       }
     }).addTo(map)
 
+
     map.on('click', function (e) {
-      var container = L.DomUtil.create('div', 'menuOnmap d-grid gap-2', container),
-        startBtn = createButton('เลือกจุดเริ่มต้น', container),
-        destBtn = createButton2('เลือกจุดหมาย', container),
-        nearest_fs = createButton5('ดับเพลิงที่ใกล้ที่สุด', container),
-        eva_area = createButton6('สร้างโครงการจุดนี้', container);
+      if (drawing_status == 0) {
+        var container = L.DomUtil.create('div', 'menuOnmap d-grid gap-2', container),
+          startBtn = createButton('เลือกจุดเริ่มต้น', container),
+          destBtn = createButton2('เลือกจุดหมาย', container),
+          nearest_fs = createButton5('ดับเพลิงที่ใกล้ที่สุด', container),
+          eva_area = createButton6('สร้างโครงการจุดนี้', container);
 
-      L.DomEvent.on(startBtn, 'click', function () {
-        wp_control.spliceWaypoints(0, 1, e.latlng);
-        map.closePopup();
-      });
-
-      L.DomEvent.on(destBtn, 'click', function () {
-        wp_control.spliceWaypoints(wp_control.getWaypoints().length - 1, 1, e.latlng);
-        map.closePopup();
-      });
-
-      L.DomEvent.on(nearest_fs, 'click', function () {
-        wp_control.spliceWaypoints(0, 1, e.latlng);
-        wp_control.spliceWaypoints(wp_control.getWaypoints().length - 1, 1, nearest_fire_station(e.latlng.lat, e.latlng.lng));
-        map.closePopup();
-      });
-
-      L.DomEvent.on(eva_area, 'click', function () {
-        document.getElementById('fire_coor').value = e.latlng.lat + "," + e.latlng.lng;
-        $('input.float').on('input', function () {
-          this.value = this.value.replace(/[^0-9.]/g, '').replace(/(\..*?)\..*/g, '$1');
+        L.DomEvent.on(startBtn, 'click', function () {
+          wp_control.spliceWaypoints(0, 1, e.latlng);
+          map.closePopup();
         });
-        $('#area_buffer').modal('show');
-        map.closePopup();
-      });
 
-      if (document.getElementsByClassName("leaflet-popup-content")[0] == undefined) {
-        L.popup()
-          .setContent(container)
-          .setLatLng(e.latlng)
-          .openOn(map);
+        L.DomEvent.on(destBtn, 'click', function () {
+          wp_control.spliceWaypoints(wp_control.getWaypoints().length - 1, 1, e.latlng);
+          map.closePopup();
+        });
+
+        L.DomEvent.on(nearest_fs, 'click', function () {
+          wp_control.spliceWaypoints(0, 1, e.latlng);
+          wp_control.spliceWaypoints(wp_control.getWaypoints().length - 1, 1, nearest_fire_station(e.latlng.lat, e.latlng.lng));
+          map.closePopup();
+        });
+
+        L.DomEvent.on(eva_area, 'click', function () {
+          document.getElementById('fire_coor').value = e.latlng.lat + "," + e.latlng.lng;
+          $('input.float').on('input', function () {
+            this.value = this.value.replace(/[^0-9.]/g, '').replace(/(\..*?)\..*/g, '$1');
+          });
+          $('#area_buffer').modal('show');
+          map.closePopup();
+        });
+
+        if (document.getElementsByClassName("leaflet-popup-content")[0] == undefined) {
+          L.popup()
+            .setContent(container)
+            .setLatLng(e.latlng)
+            .openOn(map);
+        }
       }
     });
+
 
     /*Click on map event*/
     function createButton(label, container) {
@@ -637,7 +774,7 @@
         url: "api/del_point.php",
         data: { 'point_id': point_id },
         success: function (data) {
-          
+
           if (data == 'pass') {
             Swal.fire(
               'ลบโครงการเรียบร้อยแล้ว',
@@ -749,12 +886,7 @@
       var coor_str = lat.toString() + ", " + lng.toString();
       navigator.clipboard.writeText(coor_str);
       setTimeout(function () {
-        swal({
-          title: "คัดลอกพิกัดเรียบร้อยแล้ว",
-          type: "success"
-        }, function () {
-          //func
-        });
+        Swal.fire('คัดลอกพิกัดเรียบร้อยแล้ว');
       }, 100);
     }
 
